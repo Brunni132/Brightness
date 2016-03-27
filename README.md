@@ -32,7 +32,7 @@ Anyway you can do it the way you like. Then you can use it to modify the brightn
 For a better use, we recommend using an external program that can keep the brightness tool running, without having to keep a terminal open. For instance, you might use Spark and set a shortcut like shown below. By selecting "AppleScript" and a command like `do shell script "killall brightness; /Users/florian/Software/brightness +5 >/dev/null 2>&1 &"`, you start the software and keep it running without blocking the Spark daemon. Killing any previous instance is useful too, because it would create conflicts.
 
 <p align="center">
-  <img src="http://mobile-dev.ch/images/Brightness-screenshot-02.png" alt="Spark screenshot"/>
+  <img width="734px" src="http://mobile-dev.ch/images/Brightness-screenshot-02.png" alt="Spark screenshot"/>
 </p>
 
 You may therefore create shortcuts to increase the brightness, decrease it, set the temperature for reading and such.
