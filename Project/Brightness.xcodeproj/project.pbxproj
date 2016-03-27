@@ -1,0 +1,243 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1730B8B61B9977AB000B19D6 /* Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 1730B8B51B9977AB000B19D6 /* Notifications.m */; };
+		1748D1281CA772BF00F6C11E /* Brightness.m in Sources */ = {isa = PBXBuildFile; fileRef = 1748D1271CA772BF00F6C11E /* Brightness.m */; };
+		17A505CE19CEDAB60047F1AE /* Main.m in Sources */ = {isa = PBXBuildFile; fileRef = 17A505CD19CEDAB60047F1AE /* Main.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1792713D19CED8A2005B6483 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1730B8B51B9977AB000B19D6 /* Notifications.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Notifications.m; sourceTree = SOURCE_ROOT; };
+		1730B8B71B9977EF000B19D6 /* Notifications.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Notifications.h; sourceTree = SOURCE_ROOT; };
+		1748D1271CA772BF00F6C11E /* Brightness.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Brightness.m; sourceTree = SOURCE_ROOT; };
+		1748D1291CA772EB00F6C11E /* Brightness.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Brightness.h; sourceTree = SOURCE_ROOT; };
+		1792713F19CED8A2005B6483 /* Brightness */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Brightness; sourceTree = BUILT_PRODUCTS_DIR; };
+		17A505CD19CEDAB60047F1AE /* Main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Main.m; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1792713C19CED8A2005B6483 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1792713619CED8A2005B6483 = {
+			isa = PBXGroup;
+			children = (
+				1792714119CED8A2005B6483 /* Brightness */,
+				1792714019CED8A2005B6483 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1792714019CED8A2005B6483 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1792713F19CED8A2005B6483 /* Brightness */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1792714119CED8A2005B6483 /* Brightness */ = {
+			isa = PBXGroup;
+			children = (
+				17A505CD19CEDAB60047F1AE /* Main.m */,
+				1730B8B51B9977AB000B19D6 /* Notifications.m */,
+				1730B8B71B9977EF000B19D6 /* Notifications.h */,
+				1748D1271CA772BF00F6C11E /* Brightness.m */,
+				1748D1291CA772EB00F6C11E /* Brightness.h */,
+			);
+			path = Brightness;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1792713E19CED8A2005B6483 /* Brightness */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1792714819CED8A2005B6483 /* Build configuration list for PBXNativeTarget "Brightness" */;
+			buildPhases = (
+				1792713B19CED8A2005B6483 /* Sources */,
+				1792713C19CED8A2005B6483 /* Frameworks */,
+				1792713D19CED8A2005B6483 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Brightness;
+			productName = Brightness;
+			productReference = 1792713F19CED8A2005B6483 /* Brightness */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1792713719CED8A2005B6483 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = "___FULLUSERNAME___";
+			};
+			buildConfigurationList = 1792713A19CED8A2005B6483 /* Build configuration list for PBXProject "Brightness" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 1792713619CED8A2005B6483;
+			productRefGroup = 1792714019CED8A2005B6483 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1792713E19CED8A2005B6483 /* Brightness */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1792713B19CED8A2005B6483 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1730B8B61B9977AB000B19D6 /* Notifications.m in Sources */,
+				17A505CE19CEDAB60047F1AE /* Main.m in Sources */,
+				1748D1281CA772BF00F6C11E /* Brightness.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1792714619CED8A2005B6483 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		1792714719CED8A2005B6483 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		1792714919CED8A2005B6483 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		1792714A19CED8A2005B6483 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1792713A19CED8A2005B6483 /* Build configuration list for PBXProject "Brightness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1792714619CED8A2005B6483 /* Debug */,
+				1792714719CED8A2005B6483 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1792714819CED8A2005B6483 /* Build configuration list for PBXNativeTarget "Brightness" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1792714919CED8A2005B6483 /* Debug */,
+				1792714A19CED8A2005B6483 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1792713719CED8A2005B6483 /* Project object */;
+}
