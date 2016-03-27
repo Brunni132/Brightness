@@ -38,3 +38,5 @@ For a better use, we recommend using an external program that can keep the brigh
 You may therefore create shortcuts to increase the brightness, decrease it, set the temperature for reading and such.
 
 Later on, if I get enough courage and spare time, I'd like to develop an GUI app that stays running as an icon in the top bar and allows to define profiles (temperature/gamma params) and quickly switching between them, while being able to listen for global shortcuts that would allow to modify the brightness or profile. If you are interested, feel free to get in touch with me.
+
+Spark for OS X, by Shadow Lab: http://www.shadowlab.org/Software/spark.php
