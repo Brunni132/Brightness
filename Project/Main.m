@@ -23,6 +23,10 @@ int main(int argc, char *argv[]) {
 			showHelp = YES;
 		else if (!strncmp(argv[i], "--def", 5))
 			initBrightnessParams(&params);
+		else if (!strncmp(argv[i], "--blu", 5))
+			params.blueSave = YES;
+		else if (!strncmp(argv[i], "--tem", 5))
+			params.blueSave = NO;
 		else if (argv[i][0] == 'g')
 			params.gamma = atof(argv[i] + 1);
 		else if (argv[i][0] == 'b')
@@ -64,6 +68,9 @@ int main(int argc, char *argv[]) {
 			   "   to default values. We recommend passing 30, which has litterally zero\n"
 			   "   incidence on CPU and battery life, while reverting settings in case of need.\n"
 			   "--silent: do not display a notification in the right corner of the screen.\n"
+			   "--bluesave: The temperature modification algorithm is design to limit the blue\n"
+			   "   emissions of your screen, like on iOS 9.3. This parameter gets saved but\n"
+			   "   not restored with --default. Use --temperature to revert.\n"
 			   "--nosave: by default, saves the config for the next call, so that unmodified\n"
 			   "   parameters get restored to the same as the last call.\n");
 		return 0;
@@ -91,7 +98,7 @@ int main(int argc, char *argv[]) {
 		printf("Running loop\n");
 		if (wantNotifications)
 			ShowNotification(&params, YES, touchesBrightness);
-		GammaModifyLoop(kCGDirectMainDisplay, fminf(1, 1 - params.brightness / -100.f), params.gamma, params.addition, params.temperature, params.delayUs);
+		GammaModifyLoop(kCGDirectMainDisplay, fminf(1, 1 - params.brightness / -100.f), params.gamma, params.addition, params.temperature, params.blueSave, params.delayUs);
 	}
 
     return 0;

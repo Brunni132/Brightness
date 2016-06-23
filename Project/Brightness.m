@@ -121,6 +121,24 @@ static void computeRamp(int tmpKelvin, float* rMultiplier, float* gMultiplier, f
 	}
 }
 
+static void computeRampBlueSave(int tmpKelvin, float* rMultiplier, float* gMultiplier, float* bMultiplier) {
+	double tmpCalc;
+	
+	// Red
+	// *rMultiplier = 255;
+	
+	// Green
+//	tmpCalc = 255 - (6500 - tmpKelvin) * 0.014;
+	tmpCalc = 255 - (6500 - tmpKelvin) * 0.005;
+	int mult = (int) fmaxf(0, fminf(255, tmpCalc));
+	*gMultiplier *= mult / 255.0f;
+	
+	// Blue
+	tmpCalc = 255 - (6500 - tmpKelvin) * 0.038;
+	mult = (int) fmaxf(0, fminf(255, tmpCalc));
+	*bMultiplier *= mult / 255.0f;
+}
+
 static NSString *getFileName() {
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
 	NSString *appSupportDirectoryPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"org.dev-fr.brunni.brightness"];
@@ -130,7 +148,6 @@ static NSString *getFileName() {
 		[mgr createDirectoryAtPath:appSupportDirectoryPath withIntermediateDirectories:YES attributes:nil error:&error];
 	return [appSupportDirectoryPath stringByAppendingPathComponent:@"currentBrightness"];
 }
-
 
 void initBrightnessParams(BrightnessParams *dest) {
 	dest->gamma = 1, dest->addition = 0, dest->temperature = 6500;
@@ -144,7 +161,7 @@ void getCurrentBrightnessFromFile(BrightnessParams *dest) {
 	}
 	else {
 		initBrightnessParams(dest);
-		dest->brightness = 50, dest->delayUs = 30000000;
+		dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
 	}
 }
 
@@ -203,7 +220,7 @@ void ApplyLedBrightness(BrightnessParams *params) {
 	}
 }
 
-void GammaModifyLoop(CGDirectDisplayID display, float factor, float gamma, float brightnessAdd, float temperature, uint32_t delay) {
+void GammaModifyLoop(CGDirectDisplayID display, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, uint32_t delay) {
 	//	if (factor > 1.0f) {
 	//							CGDisplayRestoreColorSyncSettings();
 	//		return;
@@ -217,8 +234,12 @@ void GammaModifyLoop(CGDirectDisplayID display, float factor, float gamma, float
 								  &greenMin, &greenMax, &greenGamma,
 								  &blueMin, &blueMax, &blueGamma);
 	
-	if (temperature >= 1000 && temperature != 6500)
+	if (temperature > 6500)
 		computeRamp(temperature, &redMax, &greenMax, &blueMax);
+	else if (temperature >= 1000 && temperature < 6500 && !useBlueSave)
+		computeRamp(temperature, &redMax, &greenMax, &blueMax);
+	else
+		computeRampBlueSave(temperature, &redMax, &greenMax, &blueMax);
 	
 	while (true) {
 		CGSetDisplayTransferByFormula(display,
