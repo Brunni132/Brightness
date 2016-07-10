@@ -128,8 +128,9 @@ static void computeRampBlueSave(int tmpKelvin, float* rMultiplier, float* gMulti
 	// *rMultiplier = 255;
 	
 	// Green
+	tmpCalc = 255 - (6500 - tmpKelvin) * 0.016;
 //	tmpCalc = 255 - (6500 - tmpKelvin) * 0.014;
-	tmpCalc = 255 - (6500 - tmpKelvin) * 0.005;
+//	tmpCalc = 255 - (6500 - tmpKelvin) * 0.005;
 	int mult = (int) fmaxf(0, fminf(255, tmpCalc));
 	*gMultiplier *= mult / 255.0f;
 	

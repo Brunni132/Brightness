@@ -82,6 +82,7 @@
 				1792713B19CED8A2005B6483 /* Sources */,
 				1792713C19CED8A2005B6483 /* Frameworks */,
 				1792713D19CED8A2005B6483 /* CopyFiles */,
+				17B846C41D32211C00BA59B3 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -117,6 +118,22 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		17B846C41D32211C00BA59B3 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp $BUILT_PRODUCTS_DIR/Brightness ~/Software/brightness\n\n\n\n\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1792713B19CED8A2005B6483 /* Sources */ = {
