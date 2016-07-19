@@ -12,7 +12,21 @@
 #include <IOKit/i2c/IOI2CInterface.h>
 
 /** Brightness parameters API */
+typedef enum {
+	kParamBrightness = 1 << 0,
+	kParamDelay = 1 << 1,
+	kParamAddition = 1 << 2,
+	kParamGamma = 1 << 3,
+	kParamTemperature = 1 << 4,
+	kParamBlueSave = 1 << 5,
+	kParamAll = (1 << 6) - 1
+} SavedBrightnessParams;
+
+#define kTag "brightness\0"
+
 typedef struct {
+	char tag[12];
+	SavedBrightnessParams savedParams;
 	int brightness;
 	int delayUs;
 	float addition;
@@ -22,8 +36,8 @@ typedef struct {
 } BrightnessParams;
 
 void initBrightnessParams(BrightnessParams *dest);
-void getCurrentBrightnessFromFile(BrightnessParams *dest);
-void saveCurrentBrightnessToFile(BrightnessParams *value);
+void getSavedParamsFromFile(BrightnessParams *dest);
+void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave);
 
 /** Brightness (screen affecting) API */
 void ApplyLedBrightness(BrightnessParams *params);		// Only affects the backlight! Use GammaModifyLoop for the rest.

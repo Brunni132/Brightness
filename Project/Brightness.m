@@ -151,23 +151,45 @@ static NSString *getFileName() {
 }
 
 void initBrightnessParams(BrightnessParams *dest) {
+	memcpy(dest->tag, kTag, sizeof(dest->tag));
 	dest->gamma = 1, dest->addition = 0, dest->temperature = 6500;
+	dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
 }
 
-void getCurrentBrightnessFromFile(BrightnessParams *dest) {
-	// Get last saved brightness, and if less than 10 difference with current, use it to get a smoother transition in case of erroneous I2C read
+void getSavedParamsFromFile(BrightnessParams *dest) {
+	BrightnessParams readParams;
 	NSData *data = [NSData dataWithContentsOfFile:getFileName()];
-	if (data) {
-		memcpy(dest, [data bytes], sizeof(BrightnessParams));
-	}
-	else {
-		initBrightnessParams(dest);
-		dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
+	initBrightnessParams(dest);
+	
+	if (!data) return;
+	memcpy(&readParams, [data bytes], sizeof(BrightnessParams));
+	
+	// Check tag
+	if (data && !memcmp(readParams.tag, kTag, sizeof(readParams.tag))) {
+		if (readParams.savedParams & kParamBrightness) dest->brightness = readParams.brightness;
+		if (readParams.savedParams & kParamDelay) dest->delayUs = readParams.delayUs;
+		if (readParams.savedParams & kParamAddition) dest->addition = readParams.addition;
+		if (readParams.savedParams & kParamGamma) dest->gamma = readParams.gamma;
+		if (readParams.savedParams & kParamTemperature) dest->temperature = readParams.temperature;
+		if (readParams.savedParams & kParamBlueSave) dest->blueSave = readParams.blueSave;
 	}
 }
 
-void saveCurrentBrightnessToFile(BrightnessParams *value) {
-	NSData *data = [NSData dataWithBytes:value length:sizeof(BrightnessParams)];
+void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave) {
+	if (!toSave) return;
+	
+	BrightnessParams existing;
+	getSavedParamsFromFile(&existing);
+
+	existing.savedParams = toSave;
+	if (toSave & kParamBrightness) existing.brightness = value->brightness;
+	if (toSave & kParamDelay) existing.delayUs = value->delayUs;
+	if (toSave & kParamAddition) existing.addition = value->addition;
+	if (toSave & kParamGamma) existing.gamma = value->gamma;
+	if (toSave & kParamTemperature) existing.temperature = value->temperature;
+	if (toSave & kParamBlueSave) existing.blueSave = value->blueSave;
+
+	NSData *data = [NSData dataWithBytes:&existing length:sizeof(BrightnessParams)];
 	if (![[NSFileManager defaultManager] createFileAtPath:getFileName() contents:data attributes:nil]) {
 		fprintf(stderr, "Failed to write %s\n", [getFileName() cStringUsingEncoding:NSUTF8StringEncoding]);
 	}

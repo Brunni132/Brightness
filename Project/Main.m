@@ -8,37 +8,41 @@
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int main(int argc, char *argv[]) {
-	BOOL touchesBrightness = NO, wantNotifications = YES, showHelp = NO;
-	BOOL saveConfig = YES;
+	BOOL wantNotifications = YES, showHelp = NO;
+	BOOL saveConfig = NO; /* if yes, save the modified params only (kept in modifiedParams) */
+	int screenId = 0;
+	SavedBrightnessParams paramsToSave = 0, modifiedParams = 0;
 	BrightnessParams params;
-	getCurrentBrightnessFromFile(&params);
+	getSavedParamsFromFile(&params);
 	
 	// Argument parsing
 	for (int i = 1; i < argc; i++) {
 		if (!strncmp(argv[i], "--sil", 5))
 			wantNotifications = NO;
-		else if (!strncmp(argv[i], "--nos", 5))
-			saveConfig = NO;
+		else if (!strncmp(argv[i], "--sav", 5))
+			saveConfig = YES;
 		else if (!strncmp(argv[i], "--hel", 5))
 			showHelp = YES;
 		else if (!strncmp(argv[i], "--def", 5))
-			initBrightnessParams(&params);
+			initBrightnessParams(&params), modifiedParams |= kParamAll;
 		else if (!strncmp(argv[i], "--blu", 5))
-			params.blueSave = YES;
+			params.blueSave = YES, modifiedParams |= kParamBlueSave;
 		else if (!strncmp(argv[i], "--tem", 5))
-			params.blueSave = NO;
+			params.blueSave = NO, modifiedParams |= kParamBlueSave;
+		else if (!strncmp(argv[i], "--scr", 5) && i + 1 < argc)
+			screenId = atoi(argv[++i]);
 		else if (argv[i][0] == 'g')
-			params.gamma = atof(argv[i] + 1);
+			params.gamma = atof(argv[i] + 1), modifiedParams |= kParamGamma;
 		else if (argv[i][0] == 'b')
-			params.addition = atof(argv[i] + 1) / 100.0f;
+			params.addition = atof(argv[i] + 1) / 100.0f, modifiedParams |= kParamAddition;
 		else if (argv[i][0] == 't')
-			params.temperature = atof(argv[i] + 1);
+			params.temperature = atof(argv[i] + 1), modifiedParams |= kParamTemperature;
 		else if (argv[i][0] == 'd')
-			params.delayUs = (uint32_t) (atof(argv[i] + 1) * 1000000.f);
+			params.delayUs = (uint32_t) (atof(argv[i] + 1) * 1000000.f), modifiedParams |= kParamDelay;
 		else if (argv[i][0] == '+' || argv[i][0] == '-')
-			params.brightness += atoi(argv[i]), touchesBrightness = YES;
+			params.brightness += atoi(argv[i]), modifiedParams |= kParamBrightness, paramsToSave |= kParamBrightness;
 		else if (argv[i][0] >= '0' && argv[i][0] <= '9')
-			params.brightness = atoi(argv[i]), touchesBrightness = YES;
+			params.brightness = atoi(argv[i]), modifiedParams |= kParamBrightness, paramsToSave |= kParamBrightness;
 		else
 			printf("Unrecognized option %c, aborting\n", argv[i][0]), showHelp = YES;
 	}
@@ -47,9 +51,6 @@ int main(int argc, char *argv[]) {
 		printf("Usage: brightness +5 g1.0 a0.0 t6500 d30 --silent\n"
 			   "Configures the brightness of non-Apple external displays and other goodies. All\n"
 			   "    arguments are optional.\n"
-			   "--default: starts with default parameters instead of previously saved ones.\n"
-			   "   Takes effect from the point where located on the command line, so you should\n"
-			   "   come as the first option.\n"
 			   "(number): allows to increase or decrease the current brightness relatively to\n"
 			   "   the previous value. You may for instance pass -5 (reduce brightness of 5%%),\n"
 			   "   +10 or 50 (set to 50%%). Passing less than zero darkens the display in\n"
@@ -71,21 +72,31 @@ int main(int argc, char *argv[]) {
 			   "--bluesave: The temperature modification algorithm is design to limit the blue\n"
 			   "   emissions of your screen, like on iOS 9.3. This parameter gets saved but\n"
 			   "   not restored with --default. Use --temperature to revert.\n"
-			   "--nosave: by default, saves the config for the next call, so that unmodified\n"
-			   "   parameters get restored to the same as the last call.\n");
+			   "--save: save the config for the next call, so that unmodified parameters get\n"
+			   "   restored to the same as the last call. Brightness is always saved.\n"
+			   "--default: starts with default parameters instead of previously saved ones.\n"
+			   "   Takes effect from the point where located on the command line, so you should\n"
+			   "   come as the first option.\n"
+			   "--screen: Number of the screen to apply to (not saved). Starts at 1.\n"
+		);
 		return 0;
+	}
+	
+	if (saveConfig) {
+		paramsToSave |= modifiedParams;
 	}
 
 	if (wantNotifications) {
 		SetupForNotifications();
 	}
-		
+
+	BOOL touchesBrightness = (modifiedParams & kParamBrightness) != 0;
 	if (touchesBrightness) {
 		ApplyLedBrightness(&params);
 	}
 
 	if (saveConfig) {
-		saveCurrentBrightnessToFile(&params);
+		saveParamsToFile(&params, paramsToSave);
 	}
 	
 	// Need to keep running?
@@ -95,10 +106,23 @@ int main(int argc, char *argv[]) {
 			ShowNotification(&params, NO, touchesBrightness);
 	}
 	else {
+		CGDirectDisplayID modifiedScreen = kCGDirectMainDisplay;
 		printf("Running loop\n");
 		if (wantNotifications)
 			ShowNotification(&params, YES, touchesBrightness);
-		GammaModifyLoop(kCGDirectMainDisplay, fminf(1, 1 - params.brightness / -100.f), params.gamma, params.addition, params.temperature, params.blueSave, params.delayUs);
+
+		if (screenId != 0) {
+			CGDirectDisplayID activeDisplays[32];
+			uint32_t actualCount;
+			CGGetOnlineDisplayList(sizeof(activeDisplays) / sizeof(activeDisplays[0]), activeDisplays, &actualCount);
+			if (screenId > actualCount) {
+				fprintf(stderr, "Tried to apply to screen %d but only %d displays are connected.\n", screenId, actualCount);
+				return 0;
+			}
+			modifiedScreen = activeDisplays[screenId - 1];
+		}
+		
+		GammaModifyLoop(modifiedScreen, fminf(1, 1 - params.brightness / -100.f), params.gamma, params.addition, params.temperature, params.blueSave, params.delayUs);
 	}
 
     return 0;
