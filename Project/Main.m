@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 		ApplyLedBrightness(&params);
 	}
 
-	if (saveConfig) {
+	if (paramsToSave) {
 		saveParamsToFile(&params, paramsToSave);
 	}
 	
