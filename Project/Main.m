@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 	int screenId = 0;
 	SavedBrightnessParams paramsToSave = 0, modifiedParams = 0;
 	BrightnessParams params;
-	getSavedParamsFromFile(&params);
+	getSavedParamsFromFile(&params, &paramsToSave);
 	
 	// Argument parsing
 	for (int i = 1; i < argc; i++) {
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 		else if (!strncmp(argv[i], "--hel", 5))
 			showHelp = YES;
 		else if (!strncmp(argv[i], "--def", 5))
-			initBrightnessParams(&params), modifiedParams |= kParamAll;
+			initBrightnessParams(&params), modifiedParams = paramsToSave = 0;
 		else if (!strncmp(argv[i], "--blu", 5))
 			params.blueSave = YES, modifiedParams |= kParamBlueSave;
 		else if (!strncmp(argv[i], "--tem", 5))
@@ -97,6 +97,9 @@ int main(int argc, char *argv[]) {
 
 	if (paramsToSave) {
 		saveParamsToFile(&params, paramsToSave);
+	}
+	else {
+		deleteParamsFile();
 	}
 	
 	// Need to keep running?

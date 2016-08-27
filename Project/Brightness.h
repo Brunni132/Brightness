@@ -36,7 +36,8 @@ typedef struct {
 } BrightnessParams;
 
 void initBrightnessParams(BrightnessParams *dest);
-void getSavedParamsFromFile(BrightnessParams *dest);
+void deleteParamsFile();
+void getSavedParamsFromFile(BrightnessParams *dest, SavedBrightnessParams *loadedParams);
 void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave);
 
 /** Brightness (screen affecting) API */

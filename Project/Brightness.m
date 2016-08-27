@@ -156,7 +156,11 @@ void initBrightnessParams(BrightnessParams *dest) {
 	dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
 }
 
-void getSavedParamsFromFile(BrightnessParams *dest) {
+void deleteParamsFile() {
+	[[NSFileManager defaultManager] removeItemAtPath:getFileName() error:nil];
+}
+
+void getSavedParamsFromFile(BrightnessParams *dest, SavedBrightnessParams *loadedParams) {
 	BrightnessParams readParams;
 	NSData *data = [NSData dataWithContentsOfFile:getFileName()];
 	initBrightnessParams(dest);
@@ -172,6 +176,7 @@ void getSavedParamsFromFile(BrightnessParams *dest) {
 		if (readParams.savedParams & kParamGamma) dest->gamma = readParams.gamma;
 		if (readParams.savedParams & kParamTemperature) dest->temperature = readParams.temperature;
 		if (readParams.savedParams & kParamBlueSave) dest->blueSave = readParams.blueSave;
+		if (loadedParams) *loadedParams = readParams.savedParams;
 	}
 }
 
@@ -179,7 +184,7 @@ void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave) {
 	if (!toSave) return;
 	
 	BrightnessParams existing;
-	getSavedParamsFromFile(&existing);
+	getSavedParamsFromFile(&existing, NULL);
 
 	existing.savedParams = toSave;
 	if (toSave & kParamBrightness) existing.brightness = value->brightness;
