@@ -248,33 +248,43 @@ void ApplyLedBrightness(BrightnessParams *params) {
 	}
 }
 
-void GammaModifyLoop(CGDirectDisplayID display, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, uint32_t delay) {
-	//	if (factor > 1.0f) {
-	//							CGDisplayRestoreColorSyncSettings();
-	//		return;
-	//	}
-	
-	CGGammaValue redMin, redMax, redGamma,
-	greenMin, greenMax, greenGamma,
-	blueMin, blueMax, blueGamma;
-	CGGetDisplayTransferByFormula(display,
-								  &redMin, &redMax, &redGamma,
-								  &greenMin, &greenMax, &greenGamma,
-								  &blueMin, &blueMax, &blueGamma);
-	
-	if (temperature > 6500)
-		computeRamp(temperature, &redMax, &greenMax, &blueMax);
-	else if (temperature >= 1000 && temperature < 6500 && !useBlueSave)
-		computeRamp(temperature, &redMax, &greenMax, &blueMax);
-	else
-		computeRampBlueSave(temperature, &redMax, &greenMax, &blueMax);
-	
+void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, uint32_t delay) {
+	struct CGGammaParams {
+		CGGammaValue redMin, redMax, redGamma,
+		             greenMin, greenMax, greenGamma,
+		             blueMin, blueMax, blueGamma;
+	};
+	struct CGGammaParams *params = calloc(displayCount, sizeof(struct CGGammaParams));
+
+//	if (factor > 1.0f) {
+//		CGDisplayRestoreColorSyncSettings();
+//		return;
+//	}
+
+	for (int i = 0; i < displayCount; i++) {
+		CGGetDisplayTransferByFormula(displays[i],
+									  &params[i].redMin, &params[i].redMax, &params[i].redGamma,
+									  &params[i].greenMin, &params[i].greenMax, &params[i].greenGamma,
+									  &params[i].blueMin, &params[i].blueMax, &params[i].blueGamma);
+
+		if (temperature > 6500)
+			computeRamp(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
+		else if (temperature >= 1000 && temperature < 6500 && !useBlueSave)
+			computeRamp(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
+		else
+			computeRampBlueSave(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
+	}
+
 	while (true) {
-		CGSetDisplayTransferByFormula(display,
-									  redMin + brightnessAdd, factor*redMax, redGamma / gamma,
-									  greenMin + brightnessAdd, factor*greenMax, greenGamma / gamma,
-									  blueMin + brightnessAdd, factor*blueMax, blueGamma / gamma);
+		for (int i = 0; i < displayCount; i++) {
+			CGSetDisplayTransferByFormula(displays[i],
+										  params[i].redMin + brightnessAdd, factor*params[i].redMax, params[i].redGamma / gamma,
+										  params[i].greenMin + brightnessAdd, factor*params[i].greenMax, params[i].greenGamma / gamma,
+										  params[i].blueMin + brightnessAdd, factor*params[i].blueMax, params[i].blueGamma / gamma);
+		}
 		usleep(delay);
 	}
+
+	free(params);
 }
 

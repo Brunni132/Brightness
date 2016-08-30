@@ -6,8 +6,17 @@
 #import "Brightness.h"
 #import "Notifications.h"
 
+static void applyParams(CGDirectDisplayID *displays, unsigned displayCount, BrightnessParams *params) {
+	GammaModifyLoop(displays, displayCount, fminf(1, 1 - params->brightness / -100.f), params->gamma, params->addition, params->temperature, params->blueSave, params->delayUs);
+}
+
+static void applyParamsSingle(CGDirectDisplayID display, BrightnessParams *params) {
+	applyParams(&display, 1, params);
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int main(int argc, char *argv[]) {
+	const int ALL_SCREENS = -1;
 	BOOL wantNotifications = YES, showHelp = NO;
 	BOOL saveConfig = NO; /* if yes, save the modified params only (kept in modifiedParams) */
 	int screenId = 0;
@@ -29,8 +38,12 @@ int main(int argc, char *argv[]) {
 			params.blueSave = YES, modifiedParams |= kParamBlueSave;
 		else if (!strncmp(argv[i], "--tem", 5))
 			params.blueSave = NO, modifiedParams |= kParamBlueSave;
-		else if (!strncmp(argv[i], "--scr", 5) && i + 1 < argc)
-			screenId = atoi(argv[++i]);
+		else if (!strncmp(argv[i], "--scr", 5) && i + 1 < argc) {
+			if (!strcmp(argv[++i], "all"))
+				screenId = ALL_SCREENS;
+			else
+				screenId = atoi(argv[i]);
+		}
 		else if (argv[i][0] == 'g')
 			params.gamma = atof(argv[i] + 1), modifiedParams |= kParamGamma;
 		else if (argv[i][0] == 'b')
@@ -44,7 +57,7 @@ int main(int argc, char *argv[]) {
 		else if (argv[i][0] >= '0' && argv[i][0] <= '9')
 			params.brightness = atoi(argv[i]), modifiedParams |= kParamBrightness, paramsToSave |= kParamBrightness;
 		else
-			printf("Unrecognized option %c, aborting\n", argv[i][0]), showHelp = YES;
+			printf("Unrecognized option %s, aborting\n", argv[i]), showHelp = YES;
 	}
 		
 	if (showHelp) {
@@ -77,7 +90,7 @@ int main(int argc, char *argv[]) {
 			   "--default: starts with default parameters instead of previously saved ones.\n"
 			   "   Takes effect from the point where located on the command line, so you should\n"
 			   "   come as the first option.\n"
-			   "--screen: Number of the screen to apply to (not saved). Starts at 1.\n"
+			   "--screen: Number of the screen to apply to (not saved). Starts at 1. Try 'all'.\n"
 		);
 		return 0;
 	}
@@ -109,7 +122,6 @@ int main(int argc, char *argv[]) {
 			ShowNotification(&params, NO, touchesBrightness);
 	}
 	else {
-		CGDirectDisplayID modifiedScreen = kCGDirectMainDisplay;
 		printf("Running loop\n");
 		if (wantNotifications)
 			ShowNotification(&params, YES, touchesBrightness);
@@ -118,14 +130,18 @@ int main(int argc, char *argv[]) {
 			CGDirectDisplayID activeDisplays[32];
 			uint32_t actualCount;
 			CGGetOnlineDisplayList(sizeof(activeDisplays) / sizeof(activeDisplays[0]), activeDisplays, &actualCount);
-			if (screenId > actualCount) {
+			if (screenId == ALL_SCREENS) { // Apply on all screens
+				applyParams(activeDisplays, actualCount, &params);
+			}
+			else if (screenId > (int)actualCount) {
 				fprintf(stderr, "Tried to apply to screen %d but only %d displays are connected.\n", screenId, actualCount);
 				return 0;
 			}
-			modifiedScreen = activeDisplays[screenId - 1];
+			else // Apply on designated screen
+				applyParamsSingle(activeDisplays[screenId - 1], &params);
 		}
-		
-		GammaModifyLoop(modifiedScreen, fminf(1, 1 - params.brightness / -100.f), params.gamma, params.addition, params.temperature, params.blueSave, params.delayUs);
+		else // Apply on default screen
+			applyParamsSingle(kCGDirectMainDisplay, &params);
 	}
 
     return 0;
