@@ -7,7 +7,7 @@
 #import "Notifications.h"
 
 static void applyParams(CGDirectDisplayID *displays, unsigned displayCount, BrightnessParams *params) {
-	GammaModifyLoop(displays, displayCount, fminf(1, 1 - params->brightness / -100.f), params->gamma, params->addition, params->temperature, params->blueSave, params->delayUs);
+	GammaModifyLoop(displays, displayCount, fminf(1, 1 - params->brightness / -100.f), params->gamma, params->addition, params->temperature, params->blueSave, params->compensateGamma, params->delayUs);
 }
 
 static void applyParamsSingle(CGDirectDisplayID display, BrightnessParams *params) {
@@ -20,9 +20,10 @@ int main(int argc, char *argv[]) {
 	BOOL wantNotifications = YES, showHelp = NO;
 	BOOL saveConfig = NO; /* if yes, save the modified params only (kept in modifiedParams) */
 	int screenId = 0;
-	SavedBrightnessParams paramsToSave = 0, modifiedParams = 0;
-	BrightnessParams params;
-	getSavedParamsFromFile(&params, &paramsToSave);
+	SavedBrightnessParams savedParams = 0, modifiedParams = 0, forceSavedParams = 0;
+	BrightnessParams loadedParams, params;
+	getSavedParamsFromFile(&loadedParams, &savedParams);
+	params = loadedParams; // copy
 	
 	// Argument parsing
 	for (int i = 1; i < argc; i++) {
@@ -32,12 +33,19 @@ int main(int argc, char *argv[]) {
 			saveConfig = YES;
 		else if (!strncmp(argv[i], "--hel", 5))
 			showHelp = YES;
-		else if (!strncmp(argv[i], "--def", 5))
-			initBrightnessParams(&params), modifiedParams = paramsToSave = 0;
+		else if (!strncmp(argv[i], "--def", 5)) // Do not save any parameter
+			initBrightnessParams(&params), modifiedParams = savedParams = 0;
 		else if (!strncmp(argv[i], "--blu", 5))
 			params.blueSave = YES, modifiedParams |= kParamBlueSave;
 		else if (!strncmp(argv[i], "--tem", 5))
 			params.blueSave = NO, modifiedParams |= kParamBlueSave;
+		else if (!strncmp(argv[i], "--rea", 5)) {
+			if (i + 1 < argc && argv[i + 1][0] >= '0' && argv[i + 1][0] <= '9' )
+				params.compensateGamma = atof(argv[++i]);
+			else
+				params.compensateGamma = 0.7f;
+			modifiedParams |= kParamCompensateGamma;
+		}
 		else if (!strncmp(argv[i], "--scr", 5) && i + 1 < argc) {
 			if (!strcmp(argv[++i], "all"))
 				screenId = ALL_SCREENS;
@@ -53,9 +61,9 @@ int main(int argc, char *argv[]) {
 		else if (argv[i][0] == 'd')
 			params.delayUs = (uint32_t) (atof(argv[i] + 1) * 1000000.f), modifiedParams |= kParamDelay;
 		else if (argv[i][0] == '+' || argv[i][0] == '-')
-			params.brightness += atoi(argv[i]), modifiedParams |= kParamBrightness, paramsToSave |= kParamBrightness;
+			params.brightness += atoi(argv[i]), forceSavedParams |= kParamBrightness;
 		else if (argv[i][0] >= '0' && argv[i][0] <= '9')
-			params.brightness = atoi(argv[i]), modifiedParams |= kParamBrightness, paramsToSave |= kParamBrightness;
+			params.brightness = atoi(argv[i]), forceSavedParams |= kParamBrightness;
 		else
 			printf("Unrecognized option %s, aborting\n", argv[i]), showHelp = YES;
 	}
@@ -90,13 +98,19 @@ int main(int argc, char *argv[]) {
 			   "--default: starts with default parameters instead of previously saved ones.\n"
 			   "   Takes effect from the point where located on the command line, so you should\n"
 			   "   come as the first option.\n"
+			   "--real: Compensates the redishness of screen to make the colors look more\n"
+			   "   natural (experimental). Add a number [0-1], default is 0.7.\n"
 			   "--screen: Number of the screen to apply to (not saved). Starts at 1. Try 'all'.\n"
 		);
 		return 0;
 	}
 	
+	transferParameters(&params, &loadedParams, forceSavedParams);
+	savedParams |= forceSavedParams;
+	
 	if (saveConfig) {
-		paramsToSave |= modifiedParams;
+		transferParameters(&params, &loadedParams, modifiedParams);
+		savedParams |= modifiedParams;
 	}
 
 	if (wantNotifications) {
@@ -108,8 +122,8 @@ int main(int argc, char *argv[]) {
 		ApplyLedBrightness(&params);
 	}
 
-	if (paramsToSave) {
-		saveParamsToFile(&params, paramsToSave);
+	if (savedParams) {
+		saveParamsToFile(&loadedParams, savedParams);
 	}
 	else {
 		deleteParamsFile();

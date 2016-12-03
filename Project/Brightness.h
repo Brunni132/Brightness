@@ -19,7 +19,8 @@ typedef enum {
 	kParamGamma = 1 << 3,
 	kParamTemperature = 1 << 4,
 	kParamBlueSave = 1 << 5,
-	kParamAll = (1 << 6) - 1
+	kParamCompensateGamma = 1 << 6,
+	kParamAll = (1 << 7) - 1
 } SavedBrightnessParams;
 
 #define kTag "brightness\0"
@@ -33,13 +34,15 @@ typedef struct {
 	float gamma;
 	float temperature;
 	BOOL blueSave;
+	float compensateGamma;
 } BrightnessParams;
 
 void initBrightnessParams(BrightnessParams *dest);
 void deleteParamsFile();
 void getSavedParamsFromFile(BrightnessParams *dest, SavedBrightnessParams *loadedParams);
+void transferParameters(BrightnessParams *originalParams, BrightnessParams *outParams, SavedBrightnessParams params);
 void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave);
 
 /** Brightness (screen affecting) API */
 void ApplyLedBrightness(BrightnessParams *params);		// Only affects the backlight! Use GammaModifyLoop for the rest.
-void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, uint32_t delay);		// Blocking. Does not change the LCD brightness.
+void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, float compensateGamma, uint32_t delay);		// Blocking. Does not change the LCD brightness.

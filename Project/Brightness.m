@@ -154,6 +154,7 @@ void initBrightnessParams(BrightnessParams *dest) {
 	memcpy(dest->tag, kTag, sizeof(dest->tag));
 	dest->gamma = 1, dest->addition = 0, dest->temperature = 6500;
 	dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
+	dest->compensateGamma = 0.7;
 }
 
 void deleteParamsFile() {
@@ -164,18 +165,14 @@ void getSavedParamsFromFile(BrightnessParams *dest, SavedBrightnessParams *loade
 	BrightnessParams readParams;
 	NSData *data = [NSData dataWithContentsOfFile:getFileName()];
 	initBrightnessParams(dest);
+	if (loadedParams) *loadedParams = 0;
 	
 	if (!data) return;
 	memcpy(&readParams, [data bytes], sizeof(BrightnessParams));
 	
 	// Check tag
 	if (data && !memcmp(readParams.tag, kTag, sizeof(readParams.tag))) {
-		if (readParams.savedParams & kParamBrightness) dest->brightness = readParams.brightness;
-		if (readParams.savedParams & kParamDelay) dest->delayUs = readParams.delayUs;
-		if (readParams.savedParams & kParamAddition) dest->addition = readParams.addition;
-		if (readParams.savedParams & kParamGamma) dest->gamma = readParams.gamma;
-		if (readParams.savedParams & kParamTemperature) dest->temperature = readParams.temperature;
-		if (readParams.savedParams & kParamBlueSave) dest->blueSave = readParams.blueSave;
+		transferParameters(&readParams, dest, readParams.savedParams);
 		if (loadedParams) *loadedParams = readParams.savedParams;
 	}
 }
@@ -187,17 +184,22 @@ void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave) {
 	getSavedParamsFromFile(&existing, NULL);
 
 	existing.savedParams = toSave;
-	if (toSave & kParamBrightness) existing.brightness = value->brightness;
-	if (toSave & kParamDelay) existing.delayUs = value->delayUs;
-	if (toSave & kParamAddition) existing.addition = value->addition;
-	if (toSave & kParamGamma) existing.gamma = value->gamma;
-	if (toSave & kParamTemperature) existing.temperature = value->temperature;
-	if (toSave & kParamBlueSave) existing.blueSave = value->blueSave;
+	transferParameters(value, &existing, toSave);
 
 	NSData *data = [NSData dataWithBytes:&existing length:sizeof(BrightnessParams)];
 	if (![[NSFileManager defaultManager] createFileAtPath:getFileName() contents:data attributes:nil]) {
 		fprintf(stderr, "Failed to write %s\n", [getFileName() cStringUsingEncoding:NSUTF8StringEncoding]);
 	}
+}
+
+void transferParameters(BrightnessParams *originalParams, BrightnessParams *outParams, SavedBrightnessParams params) {
+	if (params & kParamBrightness) outParams->brightness = originalParams->brightness;
+	if (params & kParamDelay) outParams->delayUs = originalParams->delayUs;
+	if (params & kParamAddition) outParams->addition = originalParams->addition;
+	if (params & kParamGamma) outParams->gamma = originalParams->gamma;
+	if (params & kParamTemperature) outParams->temperature = originalParams->temperature;
+	if (params & kParamBlueSave) outParams->blueSave = originalParams->blueSave;
+	if (params & kParamCompensateGamma) outParams->compensateGamma = originalParams->compensateGamma;
 }
 
 void ApplyLedBrightness(BrightnessParams *params) {
@@ -248,7 +250,7 @@ void ApplyLedBrightness(BrightnessParams *params) {
 	}
 }
 
-void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, uint32_t delay) {
+void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, float compensateGamma, uint32_t delay) {
 	struct CGGammaParams {
 		CGGammaValue redMin, redMax, redGamma,
 		             greenMin, greenMax, greenGamma,
@@ -273,6 +275,12 @@ void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float f
 			computeRamp(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
 		else
 			computeRampBlueSave(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
+		
+		if (compensateGamma > 0) {
+			params[i].redGamma *= (compensateGamma * params[i].redMax + (1 - compensateGamma));
+			params[i].greenGamma *= (compensateGamma * params[i].greenMax + (1 - compensateGamma));
+			params[i].blueGamma *= (compensateGamma * params[i].blueMax + (1 - compensateGamma));
+		}
 	}
 
 	while (true) {
