@@ -7,7 +7,7 @@
 #import "Notifications.h"
 
 static void applyParams(CGDirectDisplayID *displays, unsigned displayCount, BrightnessParams *params) {
-	GammaModifyLoop(displays, displayCount, fminf(1, 1 - params->brightness / -100.f), params->gamma, params->addition, params->temperature, params->blueSave, params->compensateGamma, params->delayUs);
+	GammaModifyLoop(displays, displayCount, fminf(1, 1 - params->brightness / -100.f), params->gamma, params->addition, params->temperature, params->blueSaveFactor, params->compensateGamma, params->delayUs);
 }
 
 static void applyParamsSingle(CGDirectDisplayID display, BrightnessParams *params) {
@@ -35,12 +35,17 @@ int main(int argc, char *argv[]) {
 			showHelp = YES;
 		else if (!strncmp(argv[i], "--def", 5)) // Do not save any parameter
 			initBrightnessParams(&params), modifiedParams = savedParams = 0;
-		else if (!strncmp(argv[i], "--blu", 5))
-			params.blueSave = YES, modifiedParams |= kParamBlueSave;
+		else if (!strncmp(argv[i], "--blu", 5)) {
+			if (i + 1 < argc && argv[i + 1][0] >= '0' && argv[i + 1][0] <= '9')
+				params.blueSaveFactor = atof(argv[++i]);
+			else
+				params.blueSaveFactor = 1.1111f;
+			modifiedParams |= kParamBlueSave;
+		}
 		else if (!strncmp(argv[i], "--tem", 5))
-			params.blueSave = NO, modifiedParams |= kParamBlueSave;
+			params.blueSaveFactor = 0.0f, modifiedParams |= kParamBlueSave;
 		else if (!strncmp(argv[i], "--rea", 5)) {
-			if (i + 1 < argc && argv[i + 1][0] >= '0' && argv[i + 1][0] <= '9' )
+			if (i + 1 < argc && argv[i + 1][0] >= '0' && argv[i + 1][0] <= '9')
 				params.compensateGamma = atof(argv[++i]);
 			else
 				params.compensateGamma = 0.7f;
@@ -91,8 +96,8 @@ int main(int argc, char *argv[]) {
 			   "   incidence on CPU and battery life, while reverting settings in case of need.\n"
 			   "--silent: do not display a notification in the right corner of the screen.\n"
 			   "--bluesave: The temperature modification algorithm is design to limit the blue\n"
-			   "   emissions of your screen, like on iOS 9.3. This parameter gets saved but\n"
-			   "   not restored with --default. Use --temperature to revert.\n"
+			   "   emissions of your screen, like on iOS 9.3. Optionally dd a number between 0\n"
+			   "   and 2 to make the screen more yellow. Use --temperature to revert.\n"
 			   "--save: save the config for the next call, so that unmodified parameters get\n"
 			   "   restored to the same as the last call. Brightness is always saved.\n"
 			   "--default: starts with default parameters instead of previously saved ones.\n"

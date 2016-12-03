@@ -121,14 +121,16 @@ static void computeRamp(int tmpKelvin, float* rMultiplier, float* gMultiplier, f
 	}
 }
 
-static void computeRampBlueSave(int tmpKelvin, float* rMultiplier, float* gMultiplier, float* bMultiplier) {
+// antiGreenFactor should be 1 initially, can be lowered to 0
+static void computeRampBlueSave(int tmpKelvin, float* rMultiplier, float* gMultiplier, float* bMultiplier, float antiGreenFactor) {
 	double tmpCalc;
 	
 	// Red
 	// *rMultiplier = 255;
 	
 	// Green
-	tmpCalc = 255 - (6500 - tmpKelvin) * 0.016;
+	tmpCalc = 255 - (6500 - tmpKelvin) * 0.018 * antiGreenFactor;
+//	tmpCalc = 255 - (6500 - tmpKelvin) * 0.016; // latest
 //	tmpCalc = 255 - (6500 - tmpKelvin) * 0.014;
 //	tmpCalc = 255 - (6500 - tmpKelvin) * 0.005;
 	int mult = (int) fmaxf(0, fminf(255, tmpCalc));
@@ -153,7 +155,7 @@ static NSString *getFileName() {
 void initBrightnessParams(BrightnessParams *dest) {
 	memcpy(dest->tag, kTag, sizeof(dest->tag));
 	dest->gamma = 1, dest->addition = 0, dest->temperature = 6500;
-	dest->brightness = 50, dest->delayUs = 30000000, dest->blueSave = NO;
+	dest->brightness = 50, dest->delayUs = 30000000, dest->blueSaveFactor = 0.0f;
 	dest->compensateGamma = 0.7;
 }
 
@@ -198,7 +200,7 @@ void transferParameters(BrightnessParams *originalParams, BrightnessParams *outP
 	if (params & kParamAddition) outParams->addition = originalParams->addition;
 	if (params & kParamGamma) outParams->gamma = originalParams->gamma;
 	if (params & kParamTemperature) outParams->temperature = originalParams->temperature;
-	if (params & kParamBlueSave) outParams->blueSave = originalParams->blueSave;
+	if (params & kParamBlueSave) outParams->blueSaveFactor = originalParams->blueSaveFactor;
 	if (params & kParamCompensateGamma) outParams->compensateGamma = originalParams->compensateGamma;
 }
 
@@ -250,7 +252,7 @@ void ApplyLedBrightness(BrightnessParams *params) {
 	}
 }
 
-void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, float compensateGamma, uint32_t delay) {
+void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, float blueSaveFactor, float compensateGamma, uint32_t delay) {
 	struct CGGammaParams {
 		CGGammaValue redMin, redMax, redGamma,
 		             greenMin, greenMax, greenGamma,
@@ -271,10 +273,18 @@ void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float f
 
 		if (temperature > 6500)
 			computeRamp(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
-		else if (temperature >= 1000 && temperature < 6500 && !useBlueSave)
+		else if (temperature >= 1000 && temperature < 6500 && blueSaveFactor < FLT_EPSILON)
 			computeRamp(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
-		else
-			computeRampBlueSave(temperature, &params[i].redMax, &params[i].greenMax, &params[i].blueMax);
+		else {
+			CGGammaValue redMax1 = params[i].redMax, greenMax1 = params[i].greenMax, blueMax1 = params[i].blueMax,
+				redMax2 = params[i].redMax, greenMax2 = params[i].greenMax, blueMax2 = params[i].blueMax;
+			float factor = MAX(0.0f, MIN(1.0f, blueSaveFactor));
+			computeRamp(temperature, &redMax1, &greenMax1, &blueMax1);
+			computeRampBlueSave(temperature, &redMax2, &greenMax2, &blueMax2, MAX(0, 2 - blueSaveFactor));
+			params[i].redMax = factor * redMax2 + (1 - factor) * redMax1;
+			params[i].greenMax = factor * greenMax2 + (1 - factor) * greenMax1;
+			params[i].blueMax = factor * blueMax2 + (1 - factor) * blueMax1;
+		}
 		
 		if (compensateGamma > 0) {
 			params[i].redGamma *= (compensateGamma * params[i].redMax + (1 - compensateGamma));

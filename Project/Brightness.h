@@ -33,7 +33,7 @@ typedef struct {
 	float addition;
 	float gamma;
 	float temperature;
-	BOOL blueSave;
+	float blueSaveFactor;
 	float compensateGamma;
 } BrightnessParams;
 
@@ -45,4 +45,4 @@ void saveParamsToFile(BrightnessParams *value, SavedBrightnessParams toSave);
 
 /** Brightness (screen affecting) API */
 void ApplyLedBrightness(BrightnessParams *params);		// Only affects the backlight! Use GammaModifyLoop for the rest.
-void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, BOOL useBlueSave, float compensateGamma, uint32_t delay);		// Blocking. Does not change the LCD brightness.
+void GammaModifyLoop(CGDirectDisplayID *displays, unsigned displayCount, float factor, float gamma, float brightnessAdd, float temperature, float blueSaveFactor, float compensateGamma, uint32_t delay);		// Blocking. Does not change the LCD brightness.
